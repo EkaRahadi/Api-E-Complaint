@@ -1,0 +1,1 @@
+web: gunicorn WebComplaint.wsgi --log-file -
