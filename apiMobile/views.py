@@ -9,6 +9,13 @@ from django.conf import settings
 #Import sent_tokenize untuk splitting text ke per kalimat
 from nltk.tokenize import sent_tokenize
 
+#Import for PDF
+from django.shortcuts import render
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from io import BytesIO
+from django.http import HttpResponse
+
 # Create your views here.
 model_sentimen = getattr(settings, 'MODEL_SENTIMEN', 'Gak iso diload')
 model_kategori = getattr(settings, 'MODEL_KATEGORI', 'Gak iso diload')
@@ -130,19 +137,20 @@ def listUpdateComplaint(request):
                     serializer = ComplaintSerializer(complaint, data=request.data)
                     if serializer.is_valid():
                         serializer.save()
-                        '''Sent Notif to Super Admin Here   '''
-                        notification_to_users = DeviceNotification(
-                            contents={
-                                "en": "Buka untuk beri tinjauan"
-                            },
-                            headings={
-                                "en": "Ada Laporan"
-                            },
-                            include_player_ids=list(super_admin),
-                            include_external_user_ids = list(super_admin)
-                        )
-                        client.send(notification_to_users)
-                        print("Notif Firebase")
+                        if len(super_admin) > 0 :
+                            '''Sent Notif to Super Admin Here   '''
+                            notification_to_users = DeviceNotification(
+                                contents={
+                                    "en": "Buka untuk beri tinjauan"
+                                },
+                                headings={
+                                    "en": "Ada Laporan"
+                                },
+                                include_player_ids=list(super_admin),
+                                include_external_user_ids = list(super_admin)
+                            )
+                            client.send(notification_to_users)
+                            print("Notif Firebase")
                         return Response({'success': True, 'data': serializer.data})
                     elif serializer.is_valid() == False:
                         return Response({'success': False, 'data': serializer.errors}, status=400)
@@ -167,10 +175,18 @@ def listUpdateComplaint(request):
             return Response({'success': False, 'data':[]}, status=404)
 
 @csrf_exempt
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def listComplaintCategory(request, pk):
+    if len(request.data) > 0:
+        date = request.data['date']
+        month = date[0:2]
+        year = date[3:7]
+        complaint = Complaint.objects.filter(kategori=pk,
+                        tanggal__year=year, 
+                        tanggal__month=month)
+    else:
+        complaint = Complaint.objects.filter(kategori=pk)
 
-    complaint = Complaint.objects.filter(kategori=pk)
     if len(complaint) > 0 :
         serializer = ComplaintSerializer(complaint, many=True)
         return Response({'success': True, 'data': serializer.data})
@@ -273,26 +289,55 @@ def listComplaintStatus(request, pk):
     except Complaint.DoesNotExist:
         return Response({'success': False, 'message': 'Complaint tidak ditemukan'}, status=404)
 
+# @csrf_exempt
+# @api_view(['GET'])
+# def testNotif(request):
+#     #onesignal instance
+#     admin = Admin.objects.filter(status_admin="Admin", kategori=2).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
+#     admin = list(admin)
+#     admin1 = Admin.objects.filter(status_admin="Admin", kategori=2).values_list('token', flat=True).order_by('id')
+#     notification_to_users = DeviceNotification(
+#         contents={
+#             "en": "Buka untuk beri tinjauan"
+#         },
+#         headings={
+#             "en": "Ada Laporan"
+#         },
+#         include_player_ids=list(admin),
+#         include_external_user_ids = list(admin)
+#     )
+#     client.send(notification_to_users)
+#     print(admin)
+#     print(list(admin1))
+#     # kategoriId = list(Kategori.objects.filter(kategori__iexact = 'KEUANGAN').values_list('id', flat=True))[0]
+#     # print(kategoriId)
+#     return Response({'success': True, 'message': 'Notifikasi terkirim'})
+
 @csrf_exempt
-@api_view(['GET'])
-def testNotif(request):
-    #onesignal instance
-    admin = Admin.objects.filter(status_admin="Admin", kategori=2).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
-    admin = list(admin)
-    admin1 = Admin.objects.filter(status_admin="Admin", kategori=2).values_list('token', flat=True).order_by('id')
-    notification_to_users = DeviceNotification(
-        contents={
-            "en": "Buka untuk beri tinjauan"
-        },
-        headings={
-            "en": "Ada Laporan"
-        },
-        include_player_ids=list(admin),
-        include_external_user_ids = list(admin)
-    )
-    client.send(notification_to_users)
-    print(admin)
-    print(list(admin1))
-    # kategoriId = list(Kategori.objects.filter(kategori__iexact = 'KEUANGAN').values_list('id', flat=True))[0]
-    # print(kategoriId)
-    return Response({'success': True, 'message': 'Notifikasi terkirim'})
+@api_view(['GET', 'POST'])
+def listComplaintPdf(request, pk):
+    if len(request.data) > 0:
+        date = request.data['date']
+        month = date[0:2]
+        year = date[3:7]
+        complaint = Complaint.objects.filter(kategori=pk,
+                        tanggal__year=year, 
+                        tanggal__month=month)
+    else:
+        complaint = Complaint.objects.filter(kategori=pk)
+
+    data = {
+        "complaint_list": complaint
+    }
+    pdf = render_to_pdf('pdf_template.html', data)
+    return HttpResponse(pdf, content_type='application/pdf')
+
+#Fungsi merubah html to PDF
+def render_to_pdf(template_src, context_dict={}):
+	template = get_template(template_src)
+	html  = template.render(context_dict)
+	result = BytesIO()
+	pdf = pisa.pisaDocument(BytesIO(html.encode("ISO-8859-1")), result)
+	if not pdf.err:
+		return HttpResponse(result.getvalue(), content_type='application/pdf')
+	return None

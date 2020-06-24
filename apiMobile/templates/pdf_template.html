@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <title>Document</title>
+    <style type="text/css">
+        @page {
+            size: a4 portrait;
+            margin: 10px;
+        }
+        .img {
+            height: 112px;
+            width: 112px;
+            margin-left: 170px;
+        }
+
+        h1, p {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        hr {
+            height: 0.1875em;
+            background-color: black;
+        }
+        .header-content {
+            margin-left: 1em;
+            text-align: center;
+            width: 80px;
+        }
+        .tb-main-content {
+            text-align: center;
+        }
+        .tb-main-content tr td {
+            padding-left: 1px; 
+            padding-right: 1px;
+            padding-top: 1; 
+            padding-bottom: 1px;
+        }
+        thead tr th {
+            padding-left: 1px; 
+            padding-right: 1px;
+            padding-top: 1; 
+            padding-bottom: 1px;
+            background-color: #EDEDED;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <table>
+                <tbody>
+                    <tr>
+                        <td class="img">
+                            <img src="https://www.polindra.ac.id/images/POLINDRA.png" alt="img-polindra">
+                        </td>
+                        <td>
+                            <div class="header-content">
+                                <h1>POLITEKNIK NEGERI INDRAMAYU</h1>
+                                <p>Jalan Raya Lohbener Lama Nomor 8 Lohbener - Indramayu 45252</p>
+                                <p>Telepon/Faksimile: (0234) 5746464</p>
+                                <p>Laman: http:///wwww.polindra.ac.id Email: info@polindra.ac.id</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <hr>
+        <div class="main-content">
+            <h2>Daftar Keluhan</h2>
+            <table border="0.1">
+                <thead style="text-align: center;">
+                    <tr>
+                        <th style="width: 3%;">No</th>
+                        <th>Keluhan</th>
+                        <th style="width: 20%;">Tanggapan</th>
+                        <th style="width: 15%;">Kategori</th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 7%;">Tanggal</th>
+                    </tr>
+                </thead>
+                <tbody class="tb-main-content">
+                    {% for complaint in complaint_list %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{complaint.keluhan}}</td>
+                        {% if complaint.status.status == "Belum Ditanggapi" %}
+                        <td>Belum ada tanggapan</td>
+                        {% elif complaint.status.status == "Reported" %}
+                        <td>Keluhan di report</td>
+                        {% elif complaint.status.status == "Pending" %}
+                        <td>Keluhan sedang ditinjau oleh super admin</td>
+                        {% else %}
+                        <td>{{complaint.tanggapan}}</td>
+                        {% endif %}
+                        <td>{{complaint.kategori.kategori}}</td>
+                        <td>{{complaint.status.status}}</td>
+                        <td>{{complaint.tanggal|date:"d-m-Y"}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

@@ -45,6 +45,7 @@ class Complaint(models.Model):
     kategori = models.ForeignKey(Kategori, on_delete=models.CASCADE, related_name='complaint')
     status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name='complaint')
     tanggapan = models.TextField(null=True, blank=True)
+    tanggal = models.DateField(auto_now_add=True)
 
     class Meta:
         db_table = 'tb_complaint'

@@ -14,5 +14,6 @@ urlpatterns = [
     path('banyak-complaint/', views.banyakCompalint, name='banyak-complaint'),
     path('token-partial-update/<str:pk>/', views.tokenPartialUpdate, name='token-partial-update'),
     path('complaint-by-status/<str:pk>/', views.listComplaintStatus, name='list-complaint-by-status'),
-    path('test-motif/', views.testNotif, name="test-notif")
+    # path('test-motif/', views.testNotif, name="test-notif"),
+    path('complaint-pdf/<str:pk>/', views.listComplaintPdf, name='test-pdf')
 ]

@@ -28,9 +28,9 @@ MODEL_KATEGORI = joblib.load(os.path.join(BASE_DIR, 'modelKategori.pkl'))
 SECRET_KEY = 'ruxzi1xrusclc*!%g43rmo0^vdz%#13*=lxm5z%fx^uf-e@!%*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['backend-complaint.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = ['backend-complaint.herokuapp.com', "127.0.0.1", "localhost", "api.elbaayu.xyz", "www.api.elbaayu.xyz", ".elbaayu.xyz"]
 
 
 # Application definition
@@ -69,7 +69,7 @@ ROOT_URLCONF = 'WebComplaint.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'apiMobile/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -90,8 +90,20 @@ WSGI_APPLICATION = 'WebComplaint.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'elbaayux_e-complaint',
+        # 'USER': 'elbaayux_elbaayu27',
+        # 'PASSWORD': '@Polindra123',
+        # 'HOST': 'localhost',
+        # 'PORT': '3306'
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'complaint',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306'
     }
 }
 
@@ -133,6 +145,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+
+STATICFILES_DIRS = [BASE_DIR+"/assets/"]
+
+STATIC_ROOT = '/home/elbaayux/api.elbaayu.xyz/static/'
+# STATIC_ROOT = '/static/'
+
+MEDIA_ROOT = '/home/elbaayux/api.elbaayu.xyz/media/'
 
 CORS_ORIGIN_ALLOW_ALL=True

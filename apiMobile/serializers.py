@@ -59,7 +59,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Complaint
-        fields = ['id','keluhan', 'sentimen', 'kategori', 'status','tanggapan']
+        fields = ['id','keluhan', 'sentimen', 'kategori', 'status','tanggapan', 'tanggal']
     
     def create(self, validated_data):
 
