@@ -129,7 +129,13 @@ def listUpdateComplaint(request):
     if request.method == 'POST':
         try:
             complaint = Complaint.objects.get(id=request.data['id'])
-            super_admin = Admin.objects.filter(status_admin="Super Admin").exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
+            # super_admin = Admin.objects.filter(status_admin="Super Admin").exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
+            super_admin_list = Admin.objects.filter(status_admin="Super Admin")
+            token_list = []
+            for admin in super_admin_list:
+                token = Token.objects.filter(admin=admin.id).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True)
+                token_list += token
+            print(token_list)
             try:
                 status_id = request.data['status']
                 status = Status.objects.get(id=status_id['status'])
@@ -137,7 +143,7 @@ def listUpdateComplaint(request):
                     serializer = ComplaintSerializer(complaint, data=request.data)
                     if serializer.is_valid():
                         serializer.save()
-                        if len(super_admin) > 0 :
+                        if len(super_admin_list) > 0 :
                             '''Sent Notif to Super Admin Here   '''
                             notification_to_users = DeviceNotification(
                                 contents={
@@ -146,8 +152,8 @@ def listUpdateComplaint(request):
                                 headings={
                                     "en": "Ada Laporan"
                                 },
-                                include_player_ids=list(super_admin),
-                                include_external_user_ids = list(super_admin)
+                                include_player_ids=token_list,
+                                include_external_user_ids = token_list
                             )
                             client.send(notification_to_users)
                             print("Notif Firebase")
@@ -240,7 +246,6 @@ def complaintCreate(request):
             }
         }
         kategoriId = list(Kategori.objects.filter(kategori__iexact = kategori[index]).values_list('id', flat=True))[0]
-        # admin = Admin.objects.filter(status_admin="Admin", kategori = kategoriId).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
         admin_list = Admin.objects.filter(status_admin="Admin", kategori = kategoriId)
         token_list = []
         for admin in admin_list:
