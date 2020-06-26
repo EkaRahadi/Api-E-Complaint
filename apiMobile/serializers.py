@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Admin, Kategori, Complaint, Status, rawComplaints
+from .models import Admin, Kategori, Complaint, Status, rawComplaints, Token
 from django.contrib.auth.hashers import make_password
 
 
@@ -13,7 +13,7 @@ class AdminSerializer(serializers.ModelSerializer):
     kategori = KategoriSerializer()
     class Meta:
         model = Admin
-        fields = ['id','username','nama','nik','jabatan','kategori','status_admin','token', 'password']
+        fields = ['id','username','nama','nik','jabatan','kategori','status_admin', 'password']
         extra_kwargs = {'password': {'write_only': True, 'required': True}}
     
     def create(self, validated_data):
@@ -25,8 +25,7 @@ class AdminSerializer(serializers.ModelSerializer):
                                     jabatan=validated_data['jabatan'],
                                     status_admin=validated_data['status_admin'],
                                     password=make_password(validated_data['password']),
-                                    kategori=Kategori.objects.get(id=kategori_id['kategori']),
-                                    token=validated_data['token']
+                                    kategori=Kategori.objects.get(id=kategori_id['kategori'])
                                      )
         return admin
     
@@ -41,7 +40,6 @@ class AdminSerializer(serializers.ModelSerializer):
         instance.jabatan = validated_data.get('jabatan', instance.jabatan)
         instance.status_admin = validated_data.get('status_admin', instance.status_admin)
         instance.password = make_password(validated_data['password'])
-        instance.token = validated_data.get('token', instance.token)
 
         instance.save()
         return instance
@@ -59,7 +57,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Complaint
-        fields = ['id','keluhan', 'sentimen', 'kategori', 'status','tanggapan', 'tanggal']
+        fields = ['id','keluhan', 'nim', 'email','sentimen', 'kategori', 'status','tanggapan', 'tanggal']
     
     def create(self, validated_data):
 
@@ -67,6 +65,8 @@ class ComplaintSerializer(serializers.ModelSerializer):
         kategori_data = validated_data['kategori']
         complaint = Complaint.objects.create(keluhan=validated_data['keluhan'],
                                             sentimen=validated_data['sentimen'],
+                                            nim=validated_data['nim'],
+                                            email=validated_data['email'],
                                             kategori=Kategori.objects.get(kategori__iexact=kategori_data['kategori']),
                                             status = Status.objects.get(id=status_id['status'])
                                      )
@@ -84,5 +84,10 @@ class ComplaintSerializer(serializers.ModelSerializer):
 class AdminPartialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Admin
-        fields = ['id','username','nama','nik','jabatan','kategori','status_admin','token', 'password']
+        fields = ['id','username','nama','nik','jabatan','kategori','status_admin','password']
         extra_kwargs = {'password': {'write_only': True, 'required': True}}
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Token
+        fields = '__all__'

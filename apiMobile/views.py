@@ -2,8 +2,8 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
-from .serializers import AdminSerializer, ComplaintSerializer, StatusSerializer, KategoriSerializer, AdminPartialSerializer
-from .models import Admin, Complaint, Status, Kategori
+from .serializers import AdminSerializer, ComplaintSerializer, StatusSerializer, KategoriSerializer, AdminPartialSerializer, TokenSerializer
+from .models import Admin, Complaint, Status, Kategori, Token
 from onesignal import OneSignal, DeviceNotification
 from django.conf import settings
 #Import sent_tokenize untuk splitting text ke per kalimat
@@ -229,6 +229,8 @@ def complaintCreate(request):
     for index in range(len(keluhan)):
         keluhan_input = {
             'keluhan' : keluhan[index],
+            'nim': request.data['nim'],
+            'email': request.data['email'],
             'sentimen' : sentimen[index],
             'kategori' : {
                 'kategori': kategori[index]
@@ -238,9 +240,15 @@ def complaintCreate(request):
             }
         }
         kategoriId = list(Kategori.objects.filter(kategori__iexact = kategori[index]).values_list('id', flat=True))[0]
-        print(kategoriId)
-        admin = Admin.objects.filter(status_admin="Admin", kategori = kategoriId).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
-        if len(admin) > 0 :
+        # admin = Admin.objects.filter(status_admin="Admin", kategori = kategoriId).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
+        admin_list = Admin.objects.filter(status_admin="Admin", kategori = kategoriId)
+        token_list = []
+        for admin in admin_list:
+            token = Token.objects.filter(admin=admin.id).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True)
+            token_list += token
+        print(token_list)
+
+        if len(admin_list) > 0 :
             notification_to_users = DeviceNotification(
                 contents={
                     "en": "Buka untuk memberi tanggapan"
@@ -248,8 +256,8 @@ def complaintCreate(request):
                 headings={
                     "en": "Keluhan Baru"
                 },
-                include_player_ids=list(admin),
-                include_external_user_ids = list(admin)
+                include_player_ids=token_list,
+                include_external_user_ids = token_list
             )
             client.send(notification_to_users)
 
@@ -289,30 +297,6 @@ def listComplaintStatus(request, pk):
     except Complaint.DoesNotExist:
         return Response({'success': False, 'message': 'Complaint tidak ditemukan'}, status=404)
 
-# @csrf_exempt
-# @api_view(['GET'])
-# def testNotif(request):
-#     #onesignal instance
-#     admin = Admin.objects.filter(status_admin="Admin", kategori=2).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True).order_by('id')
-#     admin = list(admin)
-#     admin1 = Admin.objects.filter(status_admin="Admin", kategori=2).values_list('token', flat=True).order_by('id')
-#     notification_to_users = DeviceNotification(
-#         contents={
-#             "en": "Buka untuk beri tinjauan"
-#         },
-#         headings={
-#             "en": "Ada Laporan"
-#         },
-#         include_player_ids=list(admin),
-#         include_external_user_ids = list(admin)
-#     )
-#     client.send(notification_to_users)
-#     print(admin)
-#     print(list(admin1))
-#     # kategoriId = list(Kategori.objects.filter(kategori__iexact = 'KEUANGAN').values_list('id', flat=True))[0]
-#     # print(kategoriId)
-#     return Response({'success': True, 'message': 'Notifikasi terkirim'})
-
 @csrf_exempt
 @api_view(['GET', 'POST'])
 def listComplaintPdf(request, pk):
@@ -341,3 +325,41 @@ def render_to_pdf(template_src, context_dict={}):
 	if not pdf.err:
 		return HttpResponse(result.getvalue(), content_type='application/pdf')
 	return None
+
+#Token
+@csrf_exempt
+@api_view(['GET', 'POST'])
+def token(request):
+    admin_list = Admin.objects.filter(status_admin="Admin")
+    token_list = []
+    for admin in admin_list:
+        token = Token.objects.filter(admin=admin.id).exclude(token__isnull=True).exclude(token__exact='').values_list('token', flat=True)
+        token_list += token
+    print(type(token_list))
+    if request.method == 'GET':
+        token = Token.objects.all()
+        serializer = TokenSerializer(token, many=True)
+        return Response({'success': True, 'data': serializer.data})
+    else:
+        token = Token.objects.filter(token=request.data['token'])
+        if len(token) > 0:
+            serializer = TokenSerializer(token, many=True)
+            return Response({'success': True, 'data': serializer.data})
+        else:
+            serializer = TokenSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'success': True, 'data': serializer.data})
+            else:
+                return Response({'success': False, 'data': []})
+
+@csrf_exempt
+@api_view(['DELETE'])
+def deleteToken(request):
+    try:
+        token = Token.objects.get(token=request.data['token'])
+        token.delete()
+
+        return Response({'success': True, 'message': 'Token berhasil didelete'})
+    except Token.DoesNotExist:
+        return Response({'success': False, 'message': 'Token tidak ditemukan'})
