@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Admin, Kategori, Complaint, Status, rawComplaints, Token
+from .models import Admin, Kategori, Complaint, Status, Token
 from django.contrib.auth.hashers import make_password
 
 
@@ -57,7 +57,7 @@ class ComplaintSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Complaint
-        fields = ['id','keluhan', 'nim', 'email','sentimen', 'kategori', 'status','tanggapan', 'tanggal']
+        fields = ['id','keluhan', 'nim', 'email','sentimen', 'kategori', 'status','tanggapan', 'tanggal', 'image']
     
     def create(self, validated_data):
 
@@ -68,7 +68,8 @@ class ComplaintSerializer(serializers.ModelSerializer):
                                             nim=validated_data['nim'],
                                             email=validated_data['email'],
                                             kategori=Kategori.objects.get(kategori__iexact=kategori_data['kategori']),
-                                            status = Status.objects.get(id=status_id['status'])
+                                            status = Status.objects.get(id=status_id['status']),
+                                            image = validated_data['image']
                                      )
         return complaint
     

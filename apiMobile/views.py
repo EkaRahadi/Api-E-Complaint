@@ -143,7 +143,7 @@ def listUpdateComplaint(request):
                     serializer = ComplaintSerializer(complaint, data=request.data)
                     if serializer.is_valid():
                         serializer.save()
-                        if len(super_admin_list) > 0 :
+                        if len(token_list) > 0 :
                             '''Sent Notif to Super Admin Here   '''
                             notification_to_users = DeviceNotification(
                                 contents={
@@ -243,7 +243,8 @@ def complaintCreate(request):
             },
             'status' : {
                 'status' : 1
-            }
+            },
+            'image' : request.data['image']
         }
         kategoriId = list(Kategori.objects.filter(kategori__iexact = kategori[index]).values_list('id', flat=True))[0]
         admin_list = Admin.objects.filter(status_admin="Admin", kategori = kategoriId)
@@ -253,7 +254,7 @@ def complaintCreate(request):
             token_list += token
         print(token_list)
 
-        if len(admin_list) > 0 :
+        if len(token_list) > 0 :
             notification_to_users = DeviceNotification(
                 contents={
                     "en": "Buka untuk memberi tanggapan"

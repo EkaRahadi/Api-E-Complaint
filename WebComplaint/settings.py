@@ -28,7 +28,7 @@ MODEL_KATEGORI = joblib.load(os.path.join(BASE_DIR, 'modelKategori.pkl'))
 SECRET_KEY = 'ruxzi1xrusclc*!%g43rmo0^vdz%#13*=lxm5z%fx^uf-e@!%*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['backend-complaint.herokuapp.com', "127.0.0.1", "localhost", "api.elbaayu.xyz", "www.api.elbaayu.xyz", ".elbaayu.xyz"]
 
@@ -150,9 +150,10 @@ MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [BASE_DIR+"/assets/"]
 
-STATIC_ROOT = '/home/elbaayux/api.elbaayu.xyz/static/'
-# STATIC_ROOT = '/static/'
+# STATIC_ROOT = '/home/elbaayux/api.elbaayu.xyz/static/'
+STATIC_ROOT = '/static/'
 
-MEDIA_ROOT = '/home/elbaayux/api.elbaayu.xyz/media/'
+# MEDIA_ROOT = '/home/elbaayux/api.elbaayu.xyz/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ORIGIN_ALLOW_ALL=True
