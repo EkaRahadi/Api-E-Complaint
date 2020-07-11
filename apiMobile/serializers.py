@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Admin, Kategori, Complaint, Status, Token
+from .models import Admin, Kategori, Complaint, Status, Token, ImagesModel
 from django.contrib.auth.hashers import make_password
 
 
@@ -91,4 +91,9 @@ class AdminPartialSerializer(serializers.ModelSerializer):
 class TokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Token
+        fields = '__all__'
+
+class ImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagesModel
         fields = '__all__'

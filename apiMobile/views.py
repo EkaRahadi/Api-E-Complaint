@@ -2,12 +2,15 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
-from .serializers import AdminSerializer, ComplaintSerializer, StatusSerializer, KategoriSerializer, AdminPartialSerializer, TokenSerializer
-from .models import Admin, Complaint, Status, Kategori, Token
+from .serializers import AdminSerializer, ComplaintSerializer, StatusSerializer, KategoriSerializer, AdminPartialSerializer, TokenSerializer, ImagesSerializer
+from .models import Admin, Complaint, Status, Kategori, Token, ImagesModel
 from onesignal import OneSignal, DeviceNotification
 from django.conf import settings
 #Import sent_tokenize untuk splitting text ke per kalimat
 from nltk.tokenize import sent_tokenize
+
+# Library RegEx
+import re
 
 #Import for PDF
 from django.shortcuts import render
@@ -227,14 +230,37 @@ def complaintCreate(request):
     serializer = []
     #Analaysis
     keluhan_raw = request.data['keluhan']
-    keluhan = sent_tokenize(keluhan_raw)
-    sentimen = model_sentimen.predict(keluhan)
-    kategori = model_kategori.predict(keluhan)
-    #Insert DB
+    data_kotor = re.findall(r'(?:\d[,.]|[^,.])*(?:[,.]|$)', keluhan_raw)
+    data_kotor.remove('')
+    data_bersih = []
 
-    for index in range(len(keluhan)):
-        keluhan_input = {
-            'keluhan' : keluhan[index],
+    for text in data_kotor:
+        data_bersih = data_bersih + text.split("dan")
+    
+    #Inser Gambar ke tabel Gambar
+    path_img = None
+    if request.FILES.get("path", None) != None:
+        print("Ada Gambar")
+        img_name = request.FILES["path"].name
+        data_image = {
+            "path": request.data["path"],
+            "img_name": img_name
+        }
+        serializer_image = ImagesSerializer(data=data_image)
+        if serializer_image.is_valid():
+            serializer_image.save()
+        path_img = serializer_image.data.get("path")
+    else:
+        print("Tidak ada Gambar")
+    # Prediksi
+    sentimen = model_sentimen.predict(data_bersih)
+    kategori = model_kategori.predict(data_bersih)
+
+    #Insert DB
+    for index in range(len(data_bersih)):
+        if path_img == None:
+            keluhan_input = {
+            'keluhan' : data_bersih[index],
             'nim': request.data['nim'],
             'email': request.data['email'],
             'sentimen' : sentimen[index],
@@ -244,8 +270,23 @@ def complaintCreate(request):
             'status' : {
                 'status' : 1
             },
-            'image' : request.data['image']
+            'image': None
         }
+        else:
+            keluhan_input = {
+            'keluhan' : data_bersih[index],
+            'nim': request.data['nim'],
+            'email': request.data['email'],
+            'sentimen' : sentimen[index],
+            'kategori' : {
+                'kategori': kategori[index]
+            },
+            'status' : {
+                'status' : 1
+            },
+            'image' : path_img
+        }
+
         kategoriId = list(Kategori.objects.filter(kategori__iexact = kategori[index]).values_list('id', flat=True))[0]
         admin_list = Admin.objects.filter(status_admin="Admin", kategori = kategoriId)
         token_list = []

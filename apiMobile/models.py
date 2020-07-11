@@ -37,6 +37,17 @@ class Status(models.Model):
 def upload_path(instance, filename):
     return '/'.join(['images', 'complaint', filename])
 
+#Images Model
+class ImagesModel(models.Model):
+    path = models.ImageField(blank=True, null=True, upload_to=upload_path)
+    img_name = models.CharField(max_length=150, null=True, blank=True, default="img")
+
+    class Meta:
+        db_table = 'tb_images'
+
+    def __str__(self):
+        return self.img_name
+
 #Model Complaint
 class Complaint(models.Model):
 
@@ -51,7 +62,7 @@ class Complaint(models.Model):
     status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name='complaint')
     tanggapan = models.TextField(null=True, blank=True)
     tanggal = models.DateField(auto_now_add=True)
-    image = models.ImageField(blank=True, null=True, upload_to=upload_path)
+    image = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = 'tb_complaint'
