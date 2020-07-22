@@ -54,9 +54,16 @@ class Complaint(models.Model):
     STATUS_SENTIMEN = (('Negatif', 'Negatif'),
             ('Positif', 'Positif')
     )
+    JURUSAN = (
+        ('Teknik Informatika', 'Teknik Informatika'),
+        ('Teknik Mesin', 'Teknik Mesin'),
+        ('Teknik Pendingin Dan Tata Udara', 'Teknik Pendingin Dan Tata Udara'),
+        ('Keperawatan', 'Keperawatan')
+    )
     keluhan = models.TextField()
     nim = models.CharField(max_length=20, default='000000')
     email = models.EmailField(max_length=100, default='user@email.com')
+    jurusan = models.CharField(max_length=200, choices=JURUSAN, default=None, null=True, blank=True)
     sentimen = models.CharField(max_length=100, choices=STATUS_SENTIMEN)
     kategori = models.ForeignKey(Kategori, on_delete=models.CASCADE, related_name='complaint')
     status = models.ForeignKey(Status, on_delete=models.CASCADE, related_name='complaint')
@@ -75,10 +82,18 @@ class Admin(models.Model):
     STATUS_ADMIN = (('Super Admin', 'Super Admin'),
                     ('Admin', 'Admin')
                 )
+                
+    JURUSAN = (
+        ('Teknik Informatika', 'Teknik Informatika'),
+        ('Teknik Mesin', 'Teknik Mesin'),
+        ('Teknik Pendingin Dan Tata Udara', 'Teknik Pendingin Dan Tata Udara'),
+        ('Keperawatan', 'Keperawatan')
+    )
     username = models.CharField(max_length=200, unique=True)
     nama = models.CharField(max_length=150)
     nik = models.CharField(max_length=150)
     jabatan = models.CharField(max_length=200)
+    jurusan = models.CharField(max_length=200, choices=JURUSAN, default=None, null=True, blank=True)
     kategori = models.ForeignKey(Kategori, on_delete=models.CASCADE, related_name='admin')
     status_admin = models.CharField(max_length=100, choices=STATUS_ADMIN)
     password = models.CharField(max_length=200)
