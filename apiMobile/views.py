@@ -150,7 +150,8 @@ def listUpdateComplaint(request):
                             '''Sent Notif to Super Admin Here   '''
                             notification_to_users = DeviceNotification(
                                 contents={
-                                    "en": "Buka untuk beri tinjauan"
+                                    #"en": "Buka untuk beri tinjauan"
+                                    "en": str(complaint.keluhan)
                                 },
                                 headings={
                                     "en": "Ada Laporan"
@@ -325,7 +326,8 @@ def complaintCreate(request):
         if len(token_list) > 0 :
             notification_to_users = DeviceNotification(
                 contents={
-                    "en": "Buka untuk memberi tanggapan"
+                    #"en": "Buka untuk memberi tanggapan"
+                    "en": str(data_bersih[index])
                 },
                 headings={
                     "en": "Keluhan Baru"
