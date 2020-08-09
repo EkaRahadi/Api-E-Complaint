@@ -6,6 +6,7 @@ from .serializers import AdminSerializer, ComplaintSerializer, StatusSerializer,
 from .models import Admin, Complaint, Status, Kategori, Token, ImagesModel
 from onesignal import OneSignal, DeviceNotification
 from django.conf import settings
+from django.contrib.auth.hashers import make_password, check_password
 #Import sent_tokenize untuk splitting text ke per kalimat
 from nltk.tokenize import sent_tokenize
 
@@ -76,9 +77,12 @@ def loginAdmin(request):
 
     try:
         admin = Admin.objects.get(username=username)
-        serializer = AdminSerializer(admin)
-
-        return Response({'success': True, 'data': serializer.data})
+        password_check = check_password(password, admin.password)
+        if password_check == True:
+            serializer = AdminSerializer(admin)
+            return Response({'success': True, 'data': serializer.data})
+        else:
+            return Response({'success': False, 'data': []}, status=404)
     except:
         return Response({'success': False, 'data': []}, status=404)
 
