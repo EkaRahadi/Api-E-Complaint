@@ -203,18 +203,8 @@ def listComplaintCategory(request, pk):
                                 tanggal__year=year, 
                                 tanggal__month=month)
             else:
-                if request.data.get("date", None) != None:
-                    jurusan = request.data['jurusan']
-                    date = request.data['date']
-                    month = date[0:2]
-                    year = date[3:7]
-                    complaint = Complaint.objects.filter(kategori=pk,
-                                    tanggal__year=year, 
-                                    tanggal__month=month,
-                                    jurusan__iexact=jurusan)
-                else:
-                    jurusan = request.data['jurusan']
-                    complaint = Complaint.objects.filter(kategori=pk, jurusan__iexact=jurusan)
+                jurusan = request.data['jurusan']
+                complaint = Complaint.objects.filter(kategori=pk, jurusan__iexact=jurusan)
         else:
             if len(request.data) > 0:
                 date = request.data['date']
